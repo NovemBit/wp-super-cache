@@ -349,9 +349,9 @@ function wp_cache_get_cookies_values() {
 				$cookie_role_key = 'wpsc_role';
 				$authenticated = true;
 				$wordpress_logged_in_cookie_data = explode( '|', $_COOKIE[ $key ] );
-				if( ! empty( $wordpress_logged_in_cookie_data ) && isset( $_COOKIE[ $cookie_role_key ] ) ) {
-					$wordpress_logged_in_cookie_data[ 0 ] = $_COOKIE[ $cookie_role_key ];
-					$string .= join( '|', $wordpress_logged_in_cookie_data ) . ",";
+				if( ! empty( $wordpress_logged_in_cookie_data ) && isset( $_COOKIE[ $cookie_role_key ] ) && $_COOKIE[ $cookie_role_key ] ) {
+					$role_specific_configuration = array( 'role-' . $_COOKIE[ $cookie_role_key ] );
+					$string .= join( '|', $role_specific_configuration ) . ",";
 				} else {
 					$string .= $_COOKIE[ $key ] . ",";
 				}
