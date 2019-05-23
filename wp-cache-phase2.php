@@ -765,7 +765,7 @@ function wp_supercache_dir_to_latin( $string, $last_hash = true ) {
 if(extension_loaded('intl')!==true){
 	add_action('admin_notices', function () { ?>
 		<div class="notice-warning notice">
-			<p><?php _e('<strong>Wordpress Super Cache</strong>: To avoid cases where the permalink of posts is very long (cyrillic) and cached files are not saving, you must install or enable <strong>"php-intl"</strong> php extension.', AWSB_PLUGIN_TEXT_DOMAIN); ?></p>
+			<p><?php _e('<strong>Wordpress Super Cache</strong>: To avoid cases where the permalink of posts is very long (cyrillic) and cached files are not saving, you must install or enable <strong>"php-intl"</strong> php extension.', 'wp-super-cache' ); ?></p>
 		</div>
 		<?php
 	});
