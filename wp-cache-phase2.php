@@ -315,146 +315,33 @@ function wp_cache_late_loader() {
 	wp_cache_phase2();
 }
 
-/**
- * Method is modified by @rufus87
- * @return mixed|string
- */
 function wp_cache_get_cookies_values() {
 	global $wpsc_cookies;
 	static $string = '';
-
 	if ( $string != '' ) {
 		wp_cache_debug( "wp_cache_get_cookies_values: cached: $string" );
 		return $string;
 	}
-
-	$cookiehash = defined( 'COOKIEHASH' ) ? preg_quote( constant( 'COOKIEHASH' ) ) : '';
-
-	$regex = array(
-		'^wp-postpass_' . $cookiehash,
-		'comment_author_' . $cookiehash,
-		defined( 'LOGGED_IN_COOKIE' ) ? ( '^' . preg_quote( constant( 'LOGGED_IN_COOKIE' ) ) ) : ( '^wordpress_logged_in_' . $cookiehash )
-	);
-	$regex = '/' . join( '|', $regex ) . '/';
-
-	$authenticated = false;
-	while ( $key = key( $_COOKIE ) ) {
+	if ( defined( 'COOKIEHASH' ) )
+		$cookiehash = preg_quote( constant( 'COOKIEHASH' ) );
+	else
+		$cookiehash = '';
+	$regex = "/^wp-postpass_$cookiehash|^comment_author_$cookiehash";
+	if ( defined( 'LOGGED_IN_COOKIE' ) )
+		$regex .= "|^" . preg_quote( constant( 'LOGGED_IN_COOKIE' ) );
+	else
+		$regex .= "|^wordpress_logged_in_$cookiehash";
+	$regex .= "/";
+	while ($key = key($_COOKIE)) {
 		if ( preg_match( $regex, $key ) ) {
 			wp_cache_debug( "wp_cache_get_cookies_values: $regex Cookie detected: $key", 5 );
-
-			// for authenticated users ( contains a cookie starting with "wordpress_logged_in_" )
-			// we need to exchange the username from cookie value with authenticated user role
-			// @see wpsc_on_auth_cookie_setup & wp_cache_on_auth_cookie_clean
-			if( ! $authenticated && ( strpos( $key, ( 'wordpress_logged_in_' . $cookiehash ) ) !== false ) ) {
-				$cookie_role_key = 'wpsc_role';
-				$authenticated = true;
-				$wordpress_logged_in_cookie_data = explode( '|', $_COOKIE[ $key ] );
-				if( ! empty( $wordpress_logged_in_cookie_data ) && isset( $_COOKIE[ $cookie_role_key ] ) && $_COOKIE[ $cookie_role_key ] ) {
-					$role_specific_configuration = array( 'role-' . $_COOKIE[ $cookie_role_key ] );
-					$string .= join( '|', $role_specific_configuration ) . ",";
-				} else {
-					$string .= $_COOKIE[ $key ] . ",";
-				}
-			} else {
-				$string .= $_COOKIE[ $key ] . ",";
-			}
+			$string .= $_COOKIE[ $key ] . ",";
 		}
 		next($_COOKIE);
 	}
 	reset($_COOKIE);
-
-	// for guests we need to implement caching based on user agents with some conditions
-	// temporary commented due @gegham request
-	if( false && ! $authenticated ) {
-
-		$google_bots = array(
-
-			// region Google Adsense Media Partner
-			/** AdSense */
-			array(
-				'user_agent' => 'Mediapartners-Google',
-				'operator'   => '=',
-				'group_id'   => 'google-adsense-media-partner'
-			),
-			/** Mobile AdSense */
-			array(
-				'user_agent' => '(compatible; Mediapartners-Google/2.1; +http://www.google.com/bot.html)',
-				'operator'   => 'strpos',
-				'group_id'   => 'google-adsense-media-partner'
-			),
-			// endregion
-
-			// region Google ads | Google Shopping
-			/** AdsBot */
-			array(
-				'user_agent' => 'AdsBot-Google (+http://www.google.com/adsbot.html)',
-				'operator'   => '=',
-				'group_id'   => 'google-ads-google-shopping',
-			),
-			/** AdsBot Mobile Web */
-			array(
-				'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1 (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)',
-				'operator'   => '=',
-				'group_id'   => 'google-ads-google-shopping',
-			),
-			/** AdsBot Mobile Web Android */
-			array(
-				'user_agent' => 'Mozilla/5.0 (Linux; Android 5.0; SM-G920A) AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari (compatible; AdsBot-Google-Mobile; +http://www.google.com/mobile/adsbot.html)',
-				'operator'   => '=',
-				'group_id'   => 'google-ads-google-shopping',
-			),
-			// endregion
-		);
-
-		// first, let's detect for google's user agent
-		$group_id = 'guest';
-		if( preg_match( '/(Google)/', $_SERVER[ 'HTTP_USER_AGENT' ] ) ) {
-
-			foreach( $google_bots as $bot ) {
-				switch ( $bot[ 'operator' ] ) {
-					case '=':
-						$known_agent = ( $_SERVER[ 'HTTP_USER_AGENT' ] == $bot[ 'user_agent' ] );
-						break;
-					case 'strpos':
-						$known_agent = ( strpos( $_SERVER[ 'HTTP_USER_AGENT' ], $bot[ 'user_agent' ] ) !== false );
-						break;
-					default:
-						$known_agent = false;
-				}
-
-				if( $known_agent ) {
-					// it says it's the lovely google
-					if( ! empty( $_SERVER[ 'HTTP_X_SUCURI_CLIENTIP' ] ) ) { // check by sucuri
-						$client_ip = $_SERVER[ 'HTTP_X_SUCURI_CLIENTIP' ];
-					} elseif ( ! empty( $_SERVER[ 'HTTP_CLIENT_IP' ] ) ) { // check ip from share internet
-						$client_ip = $_SERVER[ 'HTTP_CLIENT_IP' ];
-					} elseif ( ! empty( $_SERVER[ 'HTTP_X_FORWARDED_FOR' ] ) ) { // check ip is pass from proxy
-						$client_ip = $_SERVER[ 'HTTP_X_FORWARDED_FOR' ];
-					} else {
-						$client_ip = $_SERVER[ 'REMOTE_ADDR' ];
-					}
-
-					/** $host_name -> Host name string on unmodified $client_ip */
-					$host_name = gethostbyaddr( $client_ip );
-					if( $host_name !== $client_ip ) {
-						/** $ip_address -> IPv4 or unmodified $host_name */
-						$ip_address = gethostbyname( $host_name );
-						if( ( $ip_address !== $host_name ) && ( $ip_address == $client_ip ) ) {
-							$group_id = $bot[ 'group_id' ];
-						}
-					}
-
-					break;
-				}
-			}
-		}
-
-		$string .= sprintf( 'group_id=%s,', $group_id );
-	}
-
 	// If you use this hook, make sure you update your .htaccess rules with the same conditions
 	$string = do_cacheaction( 'wp_cache_get_cookies_values', $string );
-
 	if (
 		isset( $wpsc_cookies ) &&
 		is_array( $wpsc_cookies ) &&
@@ -467,11 +354,8 @@ function wp_cache_get_cookies_values() {
 			}
 		}
 	}
-
-	if( $string != '' ) {
+	if ( $string != '' )
 		$string = md5( $string );
-	}
-
 	wp_cache_debug( "wp_cache_get_cookies_values: return: $string", 5 );
 	return $string;
 }
