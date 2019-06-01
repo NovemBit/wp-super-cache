@@ -349,9 +349,14 @@ function wp_cache_get_cookies_values() {
 				$cookie_role_key = 'wpsc_role';
 				$authenticated = true;
 				$wordpress_logged_in_cookie_data = explode( '|', $_COOKIE[ $key ] );
-				if( ! empty( $wordpress_logged_in_cookie_data ) && isset( $_COOKIE[ $cookie_role_key ] ) && $_COOKIE[ $cookie_role_key ] ) {
-					$role_specific_configuration = array( 'role-' . $_COOKIE[ $cookie_role_key ] );
-					$string .= join( '|', $role_specific_configuration ) . ",";
+				if( ! empty( $wordpress_logged_in_cookie_data ) ) {
+				    if( isset( $_COOKIE[ $cookie_role_key ] ) && $_COOKIE[ $cookie_role_key ] ) {
+					    $role_specific_configuration = array( 'role-' . $_COOKIE[ $cookie_role_key ] );
+					    $string .= join( '|', $role_specific_configuration ) . ",";
+                    } else if( ! defined( 'DONOTCACHEPAGE' ) ) {
+				        define( 'DONOTCACHEPAGE', true );
+				        add_action( 'init', 'wpsc_setup_role_absentee_cookie' );
+                    }
 				} else {
 					$string .= $_COOKIE[ $key ] . ",";
 				}

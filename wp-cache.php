@@ -4264,6 +4264,17 @@ function wpsc_can_send_auth_cookies() {
     return (bool)apply_filters( 'wpsc_send_auth_cookies', true );
 }
 
+function wpsc_set_role_cookie( $role, $expire ) {
+    $value = md5( COOKIEHASH . $role . COOKIEHASH );
+    setcookie( 'wpsc_role', $value, $expire, '/' );
+}
+
+function wpsc_setup_role_absentee_cookie() {
+    if ( ( $user_id = get_current_user_id() ) && ( $user = get_userdata( $user_id ) ) && wpsc_can_send_auth_cookies() ) {
+        wpsc_set_role_cookie( $user->roles[0], DAY_IN_SECONDS );
+    }
+}
+
 /**
  * Callback to setup "wpsc_role" cookie with authenticated user's role
  * @hooked in "set_logged_in_cookie" action
@@ -4278,7 +4289,7 @@ function wpsc_can_send_auth_cookies() {
  */
 function wpsc_on_auth_cookie_setup( $logged_in_cookie, $expire, $expiration, $user_id, $scheme ) {
     if ( ( $user = get_userdata( $user_id ) ) && wpsc_can_send_auth_cookies() ) {
-        setcookie( 'wpsc_role', $user->roles[0], $expire, COOKIEPATH, COOKIE_DOMAIN, ( $scheme == 'secure_auth' ), true );
+        wpsc_set_role_cookie( $user->roles[0], $expire );
     }
 }
 add_action( 'set_logged_in_cookie', 'wpsc_on_auth_cookie_setup', 10, 5 );
@@ -4289,7 +4300,7 @@ add_action( 'set_logged_in_cookie', 'wpsc_on_auth_cookie_setup', 10, 5 );
  */
 function wp_cache_on_auth_cookie_clean() {
     if( wpsc_can_send_auth_cookies() ) {
-        setcookie( 'wpsc_role', ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+        setcookie( 'wpsc_role', ' ', time() - YEAR_IN_SECONDS );
     }
 }
 add_action( 'clear_auth_cookie', 'wp_cache_on_auth_cookie_clean' );
