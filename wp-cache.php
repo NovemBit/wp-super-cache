@@ -4271,7 +4271,7 @@ function wpsc_set_role_cookie( $role, $expire ) {
 
 function wpsc_setup_role_absentee_cookie() {
     if ( ( $user_id = get_current_user_id() ) && ( $user = get_userdata( $user_id ) ) && wpsc_can_send_auth_cookies() ) {
-        wpsc_set_role_cookie( $user->roles[0], DAY_IN_SECONDS );
+        wpsc_set_role_cookie( $user->roles[0], time() + DAY_IN_SECONDS );
     }
 }
 
