@@ -634,7 +634,9 @@ function wp_supercache_dir_to_latin( $string, $last_hash = true ) {
 	 * Than concat short md5 hash after last directory name
 	 * */
 	if ( $last_hash == true) {
-		$result = preg_replace( '/\/$/', '_' . substr( md5( $string ), 0, 12 ) . '/', $result );
+		if( $result != '/' ) {
+			$result = preg_replace( '/\/$/', '_' . substr( md5( $string ), 0, 12 ) . '/', $result );
+		}
 	}
 
 	return $result;

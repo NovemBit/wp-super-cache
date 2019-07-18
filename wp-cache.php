@@ -517,10 +517,13 @@ function admin_bar_delete_page() {
 		wpsc_delete_files( $path );
 	}
 
-	if ( $referer && $req_path && ( false !== stripos( $referer, $req_path ) || 0 === stripos( $referer, wp_login_url() ) ) ) {
-		wp_safe_redirect( esc_url_raw( home_url( $req_path ) ) );
+	// region modified by @rufus87
+	$redirect_uri = preg_replace( '/\_\w+\/$/', '/', $req_path );
+	if ( $referer && $req_path && ( false !== stripos( $referer, $redirect_uri ) || 0 === stripos( $referer, wp_login_url() ) ) ) {
+		wp_safe_redirect( esc_url_raw( home_url( $redirect_uri ) ) );
 		exit;
 	}
+	// endregion
 }
 if ( 'delcachepage' === filter_input( INPUT_GET, 'action' ) ) {
 	add_action( 'admin_init', 'admin_bar_delete_page' );
@@ -3806,7 +3809,7 @@ function wpsc_admin_bar_render( $wp_admin_bar ) {
 		return false;
 	}
 
-	if ( ( is_singular() || is_archive() || is_front_page() || is_search() ) && current_user_can(  'delete_others_posts' ) ) {
+	if ( ( is_singular() || is_archive() || is_front_page() || is_search() || is_home() ) && current_user_can(  'delete_others_posts' ) ) {
 		$site_regex = preg_quote( rtrim( (string) parse_url( get_option( 'home' ), PHP_URL_PATH ), '/' ), '`' );
 		$req_uri    = preg_replace( '/[ <>\'\"\r\n\t\(\)]/u', '', $wp_cache_request_uri );
 		$path       = preg_replace( '`^' . $site_regex . '`', '', $req_uri );
