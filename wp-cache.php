@@ -490,7 +490,24 @@ function wp_cache_manager_error_checks() {
 add_filter( 'wp_super_cache_error_checking', 'wp_cache_manager_error_checks' );
 
 /**
+ * Get cache directory for current domain alias
+ * @return string
+ * @created by @rufus87
+ */
+function get_cache_dir_for_domain_alias() {
+    global $cache_path;
+    $dir = get_supercache_dir();
+    $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : wp_get_referer();
+    if( $referer ) {
+        $dir = $cache_path . 'supercache/' . trailingslashit( parse_url( $referer, PHP_URL_HOST ) );
+    }
+
+    return $dir;
+}
+
+/**
  * Delete cache for a specific page.
+ * @modified by @rufus87
  */
 function admin_bar_delete_page() {
 
@@ -503,11 +520,11 @@ function admin_bar_delete_page() {
 	$referer_origin = $referer;
 	$valid_nonce = ( $req_path && isset( $_GET['_wpnonce'] ) ) ? wp_verify_nonce( $_GET['_wpnonce'], 'delete-cache' ) : false;
 
-	$path = $valid_nonce ? realpath( trailingslashit( get_supercache_dir() . str_replace( '..', '', preg_replace( '/:.*$/', '', $req_path ) ) ) ) : false;
+	$path = realpath( trailingslashit( get_cache_dir_for_domain_alias() . str_replace( '..', '', preg_replace( '/:.*$/', '', $req_path ) ) ) );
 
 	if ( $path ) {
 		$path           = trailingslashit( $path );
-		$supercachepath = realpath( get_supercache_dir() );
+		$supercachepath = realpath( get_cache_dir_for_domain_alias() );
 
 		if ( false === wp_cache_confirm_delete( $path ) ||
 			0 !== strpos( $path, $supercachepath )
@@ -518,7 +535,6 @@ function admin_bar_delete_page() {
 		wpsc_delete_files( $path );
 	}
 
-	// region modified by @rufus87
 	$pattern = '/\_\w+\/$/';
 	$redirect_uri = preg_replace( $pattern, '/', $req_path );
 	$referer = preg_replace( $pattern, '/', wp_supercache_get_uri_cache_dir( $referer ) );
@@ -527,7 +543,7 @@ function admin_bar_delete_page() {
 		wp_redirect( $referer_origin );
 		exit;
 	}
-	// endregion
+
 }
 if ( 'delcachepage' === filter_input( INPUT_GET, 'action' ) ) {
 	add_action( 'admin_init', 'admin_bar_delete_page' );
