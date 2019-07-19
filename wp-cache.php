@@ -499,7 +499,8 @@ function admin_bar_delete_page() {
 	}
 
 	$req_path    = isset( $_GET['path'] ) ? sanitize_text_field( stripslashes( $_GET['path'] ) ) : '';
-	$referer     = wp_get_referer();
+	$referer     = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : wp_get_referer();
+	$referer_origin = $referer;
 	$valid_nonce = ( $req_path && isset( $_GET['_wpnonce'] ) ) ? wp_verify_nonce( $_GET['_wpnonce'], 'delete-cache' ) : false;
 
 	$path = $valid_nonce ? realpath( trailingslashit( get_supercache_dir() . str_replace( '..', '', preg_replace( '/:.*$/', '', $req_path ) ) ) ) : false;
@@ -518,9 +519,12 @@ function admin_bar_delete_page() {
 	}
 
 	// region modified by @rufus87
-	$redirect_uri = preg_replace( '/\_\w+\/$/', '/', $req_path );
+	$pattern = '/\_\w+\/$/';
+	$redirect_uri = preg_replace( $pattern, '/', $req_path );
+	$referer = preg_replace( $pattern, '/', wp_supercache_get_uri_cache_dir( $referer ) );
+
 	if ( $referer && $req_path && ( false !== stripos( $referer, $redirect_uri ) || 0 === stripos( $referer, wp_login_url() ) ) ) {
-		wp_safe_redirect( esc_url_raw( home_url( $redirect_uri ) ) );
+		wp_redirect( $referer_origin );
 		exit;
 	}
 	// endregion
