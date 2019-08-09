@@ -490,7 +490,24 @@ function wp_cache_manager_error_checks() {
 add_filter( 'wp_super_cache_error_checking', 'wp_cache_manager_error_checks' );
 
 /**
+ * Get cache directory for current domain alias
+ * @return string
+ * @created by @rufus87
+ */
+function get_cache_dir_for_domain_alias() {
+    global $cache_path;
+    $dir = get_supercache_dir();
+    $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : wp_get_referer();
+    if( $referer ) {
+        $dir = $cache_path . 'supercache/' . trailingslashit( parse_url( $referer, PHP_URL_HOST ) );
+    }
+
+    return $dir;
+}
+
+/**
  * Delete cache for a specific page.
+ * @modified by @rufus87
  */
 function admin_bar_delete_page() {
 
@@ -499,14 +516,15 @@ function admin_bar_delete_page() {
 	}
 
 	$req_path    = isset( $_GET['path'] ) ? sanitize_text_field( stripslashes( $_GET['path'] ) ) : '';
-	$referer     = wp_get_referer();
+	$referer     = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : wp_get_referer();
+	$referer_origin = $referer;
 	$valid_nonce = ( $req_path && isset( $_GET['_wpnonce'] ) ) ? wp_verify_nonce( $_GET['_wpnonce'], 'delete-cache' ) : false;
 
-	$path = $valid_nonce ? realpath( trailingslashit( get_supercache_dir() . str_replace( '..', '', preg_replace( '/:.*$/', '', $req_path ) ) ) ) : false;
+	$path = realpath( trailingslashit( get_cache_dir_for_domain_alias() . str_replace( '..', '', preg_replace( '/:.*$/', '', $req_path ) ) ) );
 
 	if ( $path ) {
 		$path           = trailingslashit( $path );
-		$supercachepath = realpath( get_supercache_dir() );
+		$supercachepath = realpath( get_cache_dir_for_domain_alias() );
 
 		if ( false === wp_cache_confirm_delete( $path ) ||
 			0 !== strpos( $path, $supercachepath )
@@ -517,10 +535,15 @@ function admin_bar_delete_page() {
 		wpsc_delete_files( $path );
 	}
 
-	if ( $referer && $req_path && ( false !== stripos( $referer, $req_path ) || 0 === stripos( $referer, wp_login_url() ) ) ) {
-		wp_safe_redirect( esc_url_raw( home_url( $req_path ) ) );
+	$pattern = '/\_\w+\/$/';
+	$redirect_uri = preg_replace( $pattern, '/', $req_path );
+	$referer = preg_replace( $pattern, '/', wp_supercache_get_uri_cache_dir( $referer ) );
+
+	if ( $referer && $req_path && ( false !== stripos( $referer, $redirect_uri ) || 0 === stripos( $referer, wp_login_url() ) ) ) {
+		wp_redirect( $referer_origin );
 		exit;
 	}
+
 }
 if ( 'delcachepage' === filter_input( INPUT_GET, 'action' ) ) {
 	add_action( 'admin_init', 'admin_bar_delete_page' );
@@ -3806,7 +3829,7 @@ function wpsc_admin_bar_render( $wp_admin_bar ) {
 		return false;
 	}
 
-	if ( ( is_singular() || is_archive() || is_front_page() || is_search() ) && current_user_can(  'delete_others_posts' ) ) {
+	if ( ( is_singular() || is_archive() || is_front_page() || is_search() || is_home() ) && current_user_can(  'delete_others_posts' ) ) {
 		$site_regex = preg_quote( rtrim( (string) parse_url( get_option( 'home' ), PHP_URL_PATH ), '/' ), '`' );
 		$req_uri    = preg_replace( '/[ <>\'\"\r\n\t\(\)]/u', '', $wp_cache_request_uri );
 		$path       = preg_replace( '`^' . $site_regex . '`', '', $req_uri );

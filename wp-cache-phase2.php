@@ -670,7 +670,6 @@ function get_supercache_dir( $blog_id = 0 ) {
 	} else {
 		$home = get_blog_option( $blog_id, 'home' );
 	}
-	$a = trailingslashit( apply_filters( 'wp_super_cache_supercachedir', $cache_path . 'supercache/' . trailingslashit( strtolower( preg_replace( '/:.*$/', '', str_replace( 'http://', '', str_replace( 'https://', '', $home ) ) ) ) ) ) );
 
 	return trailingslashit( apply_filters( 'wp_super_cache_supercachedir', $cache_path . 'supercache/' . trailingslashit( strtolower( preg_replace( '/:.*$/', '', str_replace( 'http://', '', str_replace( 'https://', '', $home ) ) ) ) ) ) );
 }
@@ -755,7 +754,9 @@ function wp_supercache_dir_to_latin( $string, $last_hash = true ) {
 	 * Than concat short md5 hash after last directory name
 	 * */
 	if ( $last_hash == true) {
-		$result = preg_replace( '/\/$/', '_' . substr( md5( $string ), 0, 12 ) . '/', $result );
+		if( $result != '/' ) {
+			$result = preg_replace( '/\/$/', '_' . substr( md5( $string ), 0, 12 ) . '/', $result );
+		}
 	}
 
 	return $result;
@@ -1376,7 +1377,7 @@ function wp_cache_replace_line( $old, $new, $my_file ) {
 	}
 
 	$tmp_config_filename = tempnam( $GLOBALS['cache_path'], 'wpsc' );
-	rename( $tmp_config_filename, $tmp_wpcache_filename . ".php" );
+	rename( $tmp_config_filename, $tmp_config_filename. ".php" );
 	$tmp_config_filename .= ".php";
 	wp_cache_debug( 'wp_cache_replace_line: writing to ' . $tmp_config_filename );
 	$fd = fopen( $tmp_config_filename, 'w' );
