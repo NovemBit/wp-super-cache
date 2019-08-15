@@ -355,7 +355,7 @@ function wp_cache_get_cookies_values() {
 					    $string .= join( '|', $role_specific_configuration ) . ",";
                     } else if( ! defined( 'DONOTCACHEPAGE' ) ) {
 				        define( 'DONOTCACHEPAGE', true );
-				        add_action( 'init', 'wpsc_setup_role_absentee_cookie' );
+				        add_action( 'init', 'wpsc_create_role_missed_cookie' );
                     }
 				} else {
 					$string .= $_COOKIE[ $key ] . ",";
