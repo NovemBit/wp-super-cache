@@ -4300,6 +4300,11 @@ function wpsc_hash_cookie_value( $value, $params = array() ) {
 	return md5( join( '|', $params ) . $value . join( '|', array_reverse( $params ) ) );
 }
 
+/**
+ * Create user role cookie
+* @param string  $role    Role to store in cookie
+* @param int     $expire  Cookie lifetime
+ */
 function wpsc_create_role_cookie( $role, $expire ) {
 	if( wpsc_can_send_auth_cookies() ) {
 		setcookie( 'wpsc_role', wpsc_hash_cookie_value( $role ), $expire, '/' );
@@ -4327,12 +4332,12 @@ function wpsc_create_role_missed_cookie() {
  * @param int    $user_id          User ID.
  * @param string $scheme           Authentication scheme. Default 'logged_in'.
  */
-function wpsc_on_auth_cookie_setup( $logged_in_cookie, $expire, $expiration, $user_id, $scheme ) {
+function wpsc_on_auth_cookie_setup( $logged_in_cookie, $expire, $expiration, $user_id ) {
     if ( ( $user = get_userdata( $user_id ) ) ) {
         wpsc_create_role_cookie( $user->roles[0], $expire );
     }
 }
-add_action( 'set_logged_in_cookie', 'wpsc_on_auth_cookie_setup', 10, 5 );
+add_action( 'set_logged_in_cookie', 'wpsc_on_auth_cookie_setup', 10, 4 );
 
 /**
  * Callback to remove "wpsc_role" cookie
