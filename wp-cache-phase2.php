@@ -3415,7 +3415,7 @@ function wpsc_on_cache_init_maybe_disable_cache_based_on_role_cookie_exiting() {
 		$cache_enabled = false;
 	}
 }
-add_cacheaction( 'cache_init', 'wpsc_on_cache_init_maybe_disable_cache_based_on_role_cookie' );
+add_cacheaction( 'cache_init', 'wpsc_on_cache_init_maybe_disable_cache_based_on_role_cookie_exiting' );
 
 /**
  * Create user role missed cookie
