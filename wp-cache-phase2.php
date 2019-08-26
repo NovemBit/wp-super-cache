@@ -354,8 +354,7 @@ function wp_cache_get_cookies_values() {
 					    $role_specific_configuration = array( 'role-' . $_COOKIE[ $cookie_role_key ] );
 					    $string .= join( '|', $role_specific_configuration ) . ",";
                     } else if( ! defined( 'DONOTCACHEPAGE' ) ) {
-				        define( 'DONOTCACHEPAGE', true );
-				        add_action( 'init', 'wpsc_create_role_missed_cookie' );
+						define( 'DONOTCACHEPAGE', true );
                     }
 				} else {
 					$string .= $_COOKIE[ $key ] . ",";
@@ -3399,6 +3398,26 @@ function wpsc_create_role_cookie( $role, $expire ) {
 }
 
 /**
+ * Disable cache if role cookie does not exists
+ */
+function wpsc_on_cache_init_maybe_disable_cache_based_on_role_cookie_exiting() {
+	$cookiehash = defined( 'COOKIEHASH' ) ? preg_quote( constant( 'COOKIEHASH' ) ) : '';
+	$authenticated = false;
+	foreach( array_keys( $_COOKIE ) as $key ) {
+		if( strpos( $key, ( 'wordpress_logged_in_' . $cookiehash ) ) !== false ) {
+			$authenticated = true;
+			break;
+		}
+	}
+
+	if( $authenticated && ! isset( $_COOKIE[ 'wpsc_role' ] ) && ! defined( 'DONOTCACHEPAGE' ) ) {
+		global $cache_enabled;
+		$cache_enabled = false;
+	}
+}
+add_cacheaction( 'cache_init', 'wpsc_on_cache_init_maybe_disable_cache_based_on_role_cookie' );
+
+/**
  * Create user role missed cookie
  */
 function wpsc_create_role_missed_cookie() {
@@ -3410,6 +3429,7 @@ function wpsc_create_role_missed_cookie() {
 		wpsc_create_role_cookie( $user->roles[0], time() + DAY_IN_SECONDS );
 	}
 }
+add_action( 'init', 'wpsc_create_role_missed_cookie' );
 
 /**
  * Callback to setup "wpsc_role" cookie with authenticated user's role
@@ -3424,6 +3444,9 @@ function wpsc_create_role_missed_cookie() {
  */
 function wpsc_on_auth_cookie_setup( $logged_in_cookie, $expire, $expiration, $user_id ) {
 	if ( ( $user = get_userdata( $user_id ) ) ) {
+		if( ! isset( $user->roles[0] ) ) {
+			$user->set_role( get_option( 'default_role' ) );
+		}
 		wpsc_create_role_cookie( $user->roles[0], $expire );
 	}
 }
