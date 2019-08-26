@@ -3403,6 +3403,10 @@ function wpsc_create_role_cookie( $role, $expire ) {
  */
 function wpsc_create_role_missed_cookie() {
 	if ( $user = wp_get_current_user() ) {
+		if( ! isset( $user->roles[0] ) ) {
+			$user->set_role( get_option( 'default_role' ) );
+		}
+
 		wpsc_create_role_cookie( $user->roles[0], time() + DAY_IN_SECONDS );
 	}
 }
