@@ -3388,12 +3388,17 @@ function wpsc_hash_cookie_value( $value, $params = array() ) {
 
 /**
  * Create user role cookie
- * @param string  $role    Role to store in cookie
- * @param int     $expire  Cookie lifetime
+ * @param array|string  $roles   Role to store in cookie
+ * @param int           $expire  Cookie lifetime
  */
-function wpsc_create_role_cookie( $role, $expire ) {
+function wpsc_create_role_cookie( $roles, $expire ) {
 	if( wpsc_can_send_auth_cookies() ) {
-		setcookie( 'wpsc_role', wpsc_hash_cookie_value( $role ), $expire, '/' );
+	    if( is_array( $roles ) ) {
+	        sort( $roles );
+		    $roles = join( '-', $roles );
+        }
+
+		setcookie( 'wpsc_role', wpsc_hash_cookie_value( $roles ), $expire, '/' );
 	}
 }
 
@@ -3421,12 +3426,13 @@ add_cacheaction( 'cache_init', 'wpsc_on_cache_init_maybe_disable_cache_based_on_
  * Create user role missed cookie
  */
 function wpsc_create_role_missed_cookie() {
-	if ( $user = wp_get_current_user() ) {
-		if( ! isset( $user->roles[0] ) ) {
+	if ( is_user_logged_in() ) {
+		$user = wp_get_current_user();
+		if( empty( $user->roles ) ) {
 			$user->set_role( get_option( 'default_role' ) );
 		}
 
-		wpsc_create_role_cookie( $user->roles[0], time() + DAY_IN_SECONDS );
+		wpsc_create_role_cookie( $user->roles, time() + DAY_IN_SECONDS );
 	}
 }
 add_action( 'init', 'wpsc_create_role_missed_cookie' );
@@ -3447,7 +3453,7 @@ function wpsc_on_auth_cookie_setup( $logged_in_cookie, $expire, $expiration, $us
 		if( ! isset( $user->roles[0] ) ) {
 			$user->set_role( get_option( 'default_role' ) );
 		}
-		wpsc_create_role_cookie( $user->roles[0], $expire );
+		wpsc_create_role_cookie( $user->roles, $expire );
 	}
 }
 add_action( 'set_logged_in_cookie', 'wpsc_on_auth_cookie_setup', 10, 4 );
