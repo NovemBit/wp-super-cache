@@ -474,7 +474,7 @@ function wp_cache_get_cookies_values() {
 
 	/****** Use wholesale cookie status for authenticated users as well @added by @rufus87 ******/
 	if( $authenticated ) {
-		$wholesale_cookie_name = 'waves_show_wholesale_quantities';
+		$wholesale_cookie_name = 'ble_show_wholesale_quantities';
 		$string .= $wholesale_cookie_name . '=' . ( isset( $_COOKIE[ $wholesale_cookie_name ] ) ? intval( !! $_COOKIE[ $wholesale_cookie_name ] ) : 0 );
     }
 
