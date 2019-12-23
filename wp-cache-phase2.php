@@ -3451,7 +3451,7 @@ add_action( 'init', 'wpsc_create_role_missed_cookie' );
  */
 function wpsc_on_auth_cookie_setup( $logged_in_cookie, $expire, $expiration, $user_id ) {
 	if ( ( $user = get_userdata( $user_id ) ) ) {
-		if( ! isset( $user->roles[0] ) ) {
+		if( empty( current( $user->roles ) ) ) {
 			$user->set_role( get_option( 'default_role' ) );
 		}
 		wpsc_create_role_cookie( (array)$user->roles, $expire );
