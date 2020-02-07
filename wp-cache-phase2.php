@@ -1284,6 +1284,13 @@ function wpsc_delete_url_cache( $url ) {
 	}
 	$dir = str_replace( get_option( 'home' ), '', $url );
 	if ( $dir != '' ) {
+
+		/**
+		 * Delete real uri cache
+		 *
+		 * @autor Aaron
+		 * */
+		$dir = wp_supercache_get_uri_cache_dir($dir);
 		$supercachedir = get_supercache_dir();
 		wpsc_delete_files( $supercachedir . $dir );
 		prune_super_cache( $supercachedir . $dir . '/page', true );
