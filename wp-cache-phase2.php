@@ -474,7 +474,18 @@ function wp_cache_get_cookies_values() {
 
 	/****** Use wholesale cookie status as well @added by @rufus87 ******/
 	$wholesale_cookie_name = 'ble_show_wholesale_quantities';
-	$string .= $wholesale_cookie_name . '=' . ( isset( $_COOKIE[ $wholesale_cookie_name ] ) ? intval( !! $_COOKIE[ $wholesale_cookie_name ] ) : 0 );
+    $wholesale_cookie_value = 0;
+    if (isset($_COOKIE[$wholesale_cookie_name])) {
+        $wholesale_cookie_value = intval(!!$_COOKIE[$wholesale_cookie_name]);
+    } elseif (!function_exists('brandlight_get_domain_data')) {
+        $domain_data_file_path = WP_CONTENT_DIR . '/themes/brandlight/domain-data.php';
+        if(is_file($domain_data_file_path)) {
+            require_once $domain_data_file_path;
+            $wholesale_cookie_value = intval(brandlight_get_domain_data('wholesale_for_guests'));
+        }
+    }
+	$string .= $wholesale_cookie_name . '=' . $wholesale_cookie_value;
+    error_log( $string );
 
 	if( $string != '' ) {
 		$string = md5( $string );
