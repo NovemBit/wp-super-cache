@@ -478,7 +478,7 @@ function wp_cache_get_cookies_values() {
     if (isset($_COOKIE[$wholesale_cookie_name])) {
         $wholesale_cookie_value = intval(!!$_COOKIE[$wholesale_cookie_name]);
     } elseif (!function_exists('brandlight_get_domain_data')) {
-        $domain_data_file_path = WP_CONTENT_DIR . '/themes/brandlight/domain-data.php';
+        $domain_data_file_path = WP_CONTENT_DIR . '/themes/brandlight/domains/functions.php';
         if(is_file($domain_data_file_path)) {
             require_once $domain_data_file_path;
             $wholesale_cookie_value = intval(brandlight_get_domain_data('wholesale_for_guests'));
