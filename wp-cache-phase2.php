@@ -485,7 +485,6 @@ function wp_cache_get_cookies_values() {
         }
     }
 	$string .= $wholesale_cookie_name . '=' . $wholesale_cookie_value;
-    error_log( $string );
 
 	if( $string != '' ) {
 		$string = md5( $string );
