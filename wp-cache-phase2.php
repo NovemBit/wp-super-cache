@@ -473,7 +473,7 @@ function wp_cache_get_cookies_values() {
 	}
 
 	/****** Use wholesale cookie status as well @added by @rufus87 ******/
-	$wholesale_cookie_name = 'ble_show_wholesale_quantities';
+	$wholesale_cookie_name = 'ble_wholesale_quantities';
     $wholesale_cookie_value = 0;
     if (isset($_COOKIE[$wholesale_cookie_name])) {
         $wholesale_cookie_value = intval(!!$_COOKIE[$wholesale_cookie_name]);
