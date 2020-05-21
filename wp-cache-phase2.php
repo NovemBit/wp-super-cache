@@ -472,15 +472,20 @@ function wp_cache_get_cookies_values() {
 		}
 	}
 
+	$domain_data_file_included = false;
+    $domain_data_file_path = WP_CONTENT_DIR . '/themes/brandlight/domains/functions.php';
+
 	/****** Use wholesale cookie status as well @added by @rufus87 ******/
 	$wholesale_cookie_name = 'ble_wholesale_quantities';
     $wholesale_cookie_value = 0;
     if (isset($_COOKIE[$wholesale_cookie_name])) {
         $wholesale_cookie_value = intval(!!$_COOKIE[$wholesale_cookie_name]);
     } elseif (!function_exists('brandlight_get_domain_data')) {
-        $domain_data_file_path = WP_CONTENT_DIR . '/themes/brandlight/domains/functions.php';
-        if(is_file($domain_data_file_path)) {
+        if (!$domain_data_file_included && is_file($domain_data_file_path)) {
             require_once $domain_data_file_path;
+            $domain_data_file_included = true;
+        }
+        if($domain_data_file_included) {
             $wholesale_cookie_value = intval(brandlight_get_domain_data('wholesale_for_guests'));
         }
     }
@@ -491,6 +496,14 @@ function wp_cache_get_cookies_values() {
     $pricing_mode_cookie_value = 'ps';
     if (isset($_COOKIE[$pricing_mode_cookie_name]) && in_array($_COOKIE[$pricing_mode_cookie_name], ['ps', 'fs'])) {
         $pricing_mode_cookie_value = $_COOKIE[$pricing_mode_cookie_name];
+    } elseif (!function_exists('brandlight_get_domain_data')) {
+        if (!$domain_data_file_included && is_file($domain_data_file_path)) {
+            require_once $domain_data_file_path;
+            $domain_data_file_included = true;
+        }
+        if ($domain_data_file_included && ($domain_data = brandlight_get_domain_data('pricing_mode'))) {
+            $pricing_mode_cookie_value = $domain_data;
+        }
     }
     $string .= $pricing_mode_cookie_name . '=' . $pricing_mode_cookie_value;
 
