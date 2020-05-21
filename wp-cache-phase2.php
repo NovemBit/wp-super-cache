@@ -486,6 +486,14 @@ function wp_cache_get_cookies_values() {
     }
 	$string .= $wholesale_cookie_name . '=' . $wholesale_cookie_value;
 
+    /****** Use "Pricing Mode" cookie status as well @added by @rufus87 ******/
+    $pricing_mode_cookie_name = 'ble_pricing_mode';
+    $pricing_mode_cookie_value = 'ps';
+    if (isset($_COOKIE[$pricing_mode_cookie_name]) && in_array($_COOKIE[$pricing_mode_cookie_name], ['ps', 'fs'])) {
+        $pricing_mode_cookie_value = $_COOKIE[$wholesale_cookie_name];
+    }
+    $string .= $pricing_mode_cookie_name . '=' . $pricing_mode_cookie_value;
+
 	if( $string != '' ) {
 		$string = md5( $string );
 	}
