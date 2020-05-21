@@ -490,7 +490,7 @@ function wp_cache_get_cookies_values() {
     $pricing_mode_cookie_name = 'ble_pricing_mode';
     $pricing_mode_cookie_value = 'ps';
     if (isset($_COOKIE[$pricing_mode_cookie_name]) && in_array($_COOKIE[$pricing_mode_cookie_name], ['ps', 'fs'])) {
-        $pricing_mode_cookie_value = $_COOKIE[$wholesale_cookie_name];
+        $pricing_mode_cookie_value = $_COOKIE[$pricing_mode_cookie_name];
     }
     $string .= $pricing_mode_cookie_name . '=' . $pricing_mode_cookie_value;
 
