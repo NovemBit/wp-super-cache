@@ -493,7 +493,7 @@ function wp_cache_get_cookies_values() {
 
     /****** Use "Pricing Mode" cookie status as well @added by @rufus87 ******/
     $pricing_mode_cookie_name = 'ble_pricing_mode';
-    $pricing_mode_cookie_value = 'ps';
+    $pricing_mode_cookie_value = 'fs';
     if (isset($_COOKIE[$pricing_mode_cookie_name]) && in_array($_COOKIE[$pricing_mode_cookie_name], ['ps', 'fs'])) {
         $pricing_mode_cookie_value = $_COOKIE[$pricing_mode_cookie_name];
     } elseif (!function_exists('brandlight_get_domain_data')) {
