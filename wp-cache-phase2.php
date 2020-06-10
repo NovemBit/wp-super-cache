@@ -502,7 +502,7 @@ function wp_cache_get_cookies_values() {
             $domain_data_file_included = true;
         }
         if ($domain_data_file_included && ($domain_data = brandlight_get_domain_data('pricing_mode'))) {
-            if (isset($domain_data['default']) && in_array($domain_data['default'], ['fs', 'ps'])) {
+            if (isset($domain_data['default_state']) && in_array($domain_data['default_state'], ['fs', 'ps'])) {
                 $pricing_mode_cookie_value = $domain_data;
             }
         }
