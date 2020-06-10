@@ -502,7 +502,9 @@ function wp_cache_get_cookies_values() {
             $domain_data_file_included = true;
         }
         if ($domain_data_file_included && ($domain_data = brandlight_get_domain_data('pricing_mode'))) {
-            $pricing_mode_cookie_value = $domain_data;
+            if (isset($domain_data['default']) && in_array($domain_data['default'], ['fs', 'ps'])) {
+                $pricing_mode_cookie_value = $domain_data;
+            }
         }
     }
     $string .= $pricing_mode_cookie_name . '=' . $pricing_mode_cookie_value;
