@@ -478,15 +478,18 @@ function wp_cache_get_cookies_values() {
 	/****** Use wholesale cookie status as well @added by @rufus87 ******/
 	$wholesale_cookie_name = 'ble_wholesale_quantities';
     $wholesale_cookie_value = 0;
-    if (isset($_COOKIE[$wholesale_cookie_name])) {
-        $wholesale_cookie_value = intval(!!$_COOKIE[$wholesale_cookie_name]);
+    if (isset($_COOKIE[$wholesale_cookie_name]) && in_array($_COOKIE[$wholesale_cookie_name], ['1', '0'])) {
+        $wholesale_cookie_value = intval($_COOKIE[$wholesale_cookie_name]);
     } elseif (!function_exists('brandlight_get_domain_data')) {
         if (!$domain_data_file_included && is_file($domain_data_file_path)) {
             require_once $domain_data_file_path;
             $domain_data_file_included = true;
         }
-        if($domain_data_file_included) {
-            $wholesale_cookie_value = intval(brandlight_get_domain_data('wholesale_for_guests'));
+        if ($domain_data_file_included) {
+            $wholesale_domain_data = brandlight_get_domain_data('wholesale');
+            if ($wholesale_domain_data && isset($wholesale_domain_data['default_state'])) {
+                $wholesale_cookie_value = intval('wholesale' === $wholesale_domain_data['default_state']);
+            }
         }
     }
 	$string .= $wholesale_cookie_name . '=' . $wholesale_cookie_value;
