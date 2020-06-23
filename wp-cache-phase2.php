@@ -1059,7 +1059,7 @@ function wpsc_delete_files( $dir, $delete = true, $recursive = false ) {
 		closedir( $dh );
 
 		if ( $delete )
-			wpsc_rmdir( $dir );
+			wpsc_rmdir( $dir, $recursive );
 	}
 	return true;
 }
