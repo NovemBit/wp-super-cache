@@ -516,6 +516,11 @@ function admin_bar_delete_page() {
 	}
 
 	$req_path    = isset( $_GET['path'] ) ? sanitize_text_field( stripslashes( $_GET['path'] ) ) : '';
+
+	/**
+	 * added by @aaron
+	 */
+	$recursive   = (bool) (isset( $_GET['recursive'] ) ? $_GET['recursive'] : false);
 	$referer     = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? $_SERVER[ 'HTTP_REFERER' ] : wp_get_referer();
 	$referer_origin = $referer;
 	$valid_nonce = ( $req_path && isset( $_GET['_wpnonce'] ) ) ? wp_verify_nonce( $_GET['_wpnonce'], 'delete-cache' ) : false;
@@ -532,7 +537,7 @@ function admin_bar_delete_page() {
 			wp_die( 'Could not delete directory' );
 		}
 
-		wpsc_delete_files( $path );
+		wpsc_delete_files( $path, true, $recursive );
 	}
 
 	$pattern = '/\_\w+\/$/';

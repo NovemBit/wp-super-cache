@@ -804,7 +804,7 @@ function wp_supercache_get_uri_cache_dir($uri){
      * Concatenating shorten md5 hash of full directory to last directory name
      * @additional
      * */
-    $uri = wp_supercache_dir_to_latin($uri,true);
+    $uri = wp_supercache_dir_to_latin($uri,false);
     return $uri;
 }
 
@@ -952,7 +952,33 @@ function wpsc_is_in_cache_directory( $directory ) {
 	}
 }
 
-function wpsc_delete_files( $dir, $delete = true ) {
+/**
+ * Added by @aaron
+ *
+ * To delete files and tree
+ *
+ * @param $dir
+ * @param false $recursive
+ */
+function wpsc_rmdir($dir,$recursive = false){
+	if (is_dir($dir)) {
+	    if($recursive) {
+		    $objects = scandir( $dir );
+		    foreach ( $objects as $object ) {
+			    if ( $object !== "." && $object !== ".." ) {
+				    if ( is_dir( $dir . DIRECTORY_SEPARATOR . $object ) && ! is_link( $dir . "/" . $object ) ) {
+					    wpsc_rmdir( $dir . DIRECTORY_SEPARATOR . $object, $recursive );
+				    } else {
+					    @unlink( $dir . DIRECTORY_SEPARATOR . $object );
+				    }
+			    }
+		    }
+	    }
+		@rmdir($dir);
+	}
+}
+
+function wpsc_delete_files( $dir, $delete = true, $recursive = false ) {
 	global $cache_path;
 	static $protected = '';
 
@@ -996,7 +1022,7 @@ function wpsc_delete_files( $dir, $delete = true ) {
 		closedir( $dh );
 
 		if ( $delete )
-			@rmdir( $dir );
+			wpsc_rmdir( $dir, $recursive );
 	}
 	return true;
 }
