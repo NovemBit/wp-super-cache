@@ -988,34 +988,8 @@ function wpsc_is_in_cache_directory( $directory ) {
 	}
 }
 
-/**
- * Added by @aaron
- *
- * To delete files and tree
- *
- * @param $dir
- * @param false $recursive
- */
-function wpsc_rmdir($dir,$recursive = false){
-	if (is_dir($dir)) {
-		if($recursive) {
-			$objects = scandir( $dir );
-			foreach ( $objects as $object ) {
-				if ( $object !== "." && $object !== ".." ) {
-					if ( is_dir( $dir . DIRECTORY_SEPARATOR . $object ) && ! is_link( $dir . "/" . $object ) ) {
-						wpsc_rmdir( $dir . DIRECTORY_SEPARATOR . $object, $recursive );
-					} else {
-						@unlink( $dir . DIRECTORY_SEPARATOR . $object );
-					}
-				}
-			}
-		}
-		@rmdir($dir);
-	}
-}
 
-
-function wpsc_delete_files( $dir, $delete = true, $recursive = false ) {
+function wpsc_delete_files( $dir, $delete = true, $all = false ) {
 	global $cache_path;
 	static $protected = '';
 
@@ -1059,7 +1033,10 @@ function wpsc_delete_files( $dir, $delete = true, $recursive = false ) {
 		closedir( $dh );
 
 		if ( $delete )
-			wpsc_rmdir( $dir, $recursive );
+			if($all)
+			    prune_super_cache($dir, true,true);
+			else
+			    @rmdir($dir);
 	}
 	return true;
 }
