@@ -3004,6 +3004,8 @@ function wpsc_delete_post_archives( $post ) {
 		wp_cache_debug( 'wpsc_delete_post_archives: deleting cache of post type archive: ' . $archive_url );
 	}
 
+    do_action('wpsc_delete_post_type_archive_cache', $post, $archive_url);
+
 	// Author archive page
 	$author_url = get_author_posts_url( $post->post_author );
 	if ( $author_url ) {
